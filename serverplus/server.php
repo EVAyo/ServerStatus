@@ -1,8 +1,8 @@
 <?php
 define('SERVER_IP', '0.0.0.0');
-define('SERVER_PORT', 35601);
+define('SERVER_PORT', 35602);
 define('CONFIG_FILE', 'config.json');
-define('IS_HTTPS', false);
+define('API_URL', 'ws://{host}/v2/');
 
 if (!is_file('.token')) file_put_contents('.token', md5(uniqid(microtime(true), true)));
 $token = file_get_contents('.token');
@@ -176,9 +176,10 @@ class  Server
             $html = "No Access";
             if ($request->server['request_uri'] == '/api/client-linux.py') {
                 if (trim($request->get['token']) === trim(TOKEN)) {
-                    $api = (IS_HTTPS ? 'wss://' : 'ws://') . $request->header['host'];
+                    $api = str_replace('{host}',$request->header['host'], API_URL); ;
 
                     $clientIp = $request->server['remote_addr'];
+                    $clientIp = isset($request->header['x-real-ip'])?$request->header['x-real-ip']:$clientIp;
                     if ($server = $this->findServer('host', $clientIp)) {
                         $username = $server['username'];
                         $password = $server['password'];

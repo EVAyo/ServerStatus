@@ -6,7 +6,7 @@
 # 时间: 20200407
 # 说明: 默认情况下修改server和user就可以了。丢包率监测方向可以自定义，例如：CU = "www.facebook.com"。
 
-SERVER = "ws://127.0.0.1:35601"
+SERVER = "ws://127.0.0.1:35602"
 USER = "s01"
 PASSWORD = "USER_DEFAULT_PASSWORD"
 
