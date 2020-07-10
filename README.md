@@ -1,8 +1,12 @@
-# ServerStatus中文修改版：   
+# ServerStatus 中文修改版
 
-* ServerStatus中文修改版是一个酷炫高逼格的云探针、云监控、服务器云监控、多服务器探针~
+ServerStatus 中文修改版是一个酷炫高逼格的云探针、云监控、服务器云监控、多服务器探针~
 
+## 演示效果
 
+[打开演示站](https://eller.tech/tanzhen/index.html)
+
+## 预览图
 
 
 ![UMqhPH.png](https://s1.ax1x.com/2020/07/11/UMqhPH.png)
@@ -65,7 +69,7 @@ fork 中文版，根据自己的需求，梳理了下服务端的逻辑，发现
 运行：
 
 ```bash
-nohup php server.php
+php server.php
 ```
 
 后台运行：
