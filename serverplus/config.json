@@ -1,0 +1,53 @@
+{
+    "servers": [
+        {
+            "username": "s01",
+            "name": "node1",
+            "type": "xen",
+            "host": "host1",
+            "location": "cn",
+            "password": "USER_DEFAULT_PASSWORD"
+        },
+        {
+            "username": "s02",
+            "name": "node2",
+            "type": "vmware",
+            "host": "host2",
+            "location": "jp",
+            "password": "USER_DEFAULT_PASSWORD"
+        },
+        {
+            "disabled": true,
+            "username": "s03",
+            "name": "node3",
+            "type": "Nothing",
+            "host": "host3",
+            "location": "fr",
+            "password": "USER_DEFAULT_PASSWORD"
+        },
+        {
+            "username": "s04",
+            "name": "node4",
+            "type": "kvm",
+            "host": "host4",
+            "location": "kr",
+            "password": "USER_DEFAULT_PASSWORD"
+        },
+        {
+            "username": "AS5",
+            "name": "HKVPS",
+            "type": "kvm",
+            "host": "192.168.75.1",
+            "location": "HongKong",
+            "password": "9482f3a7e4af545b72b4e497d9d7d4a0"
+        },
+        {
+            "username": "AS6",
+            "name": "HKVPS3",
+            "type": "kvm",
+            "host": "192.168.75.132",
+            "location": "HongKong",
+            "password": "1ac65303df7834a6c6ad8fd0d6a11591"
+        }
+    ]
+}
