@@ -1,141 +1,198 @@
-# ServerStatus中文版：   
+# ServerStatus中文修改版：   
 
-* ServerStatus中文版是一个酷炫高逼格的云探针、云监控、服务器云监控、多服务器探针~。
-* 在线演示：https://tz.cloudcpp.com    
+* ServerStatus中文修改版是一个酷炫高逼格的云探针、云监控、服务器云监控、多服务器探针~
 
-[![Build Status](https://img.shields.io/travis/otale/tale.svg?style=flat-square)](https://github.com/cppla/ServerStatus)
-[![Python Support](https://img.shields.io/badge/python-2.7%2B%20-blue.svg)](https://github.com/cppla/ServerStatus)
-[![C++ Compiler](http://img.shields.io/badge/C++-GNU-blue.svg?style=flat&logo=cplusplus)](https://github.com/cppla/ServerStatus)
-[![License](https://img.shields.io/badge/license-MIT-4EB1BA.svg?style=flat-square)](https://github.com/cppla/ServerStatus)
 
-![Latest Version](http://dl.cpp.la/Archive/serverstatus.png)
 
-# 目录介绍：
 
-* autodeploy    自动部署.
-* clients       客户端文件
-* server        服务端文件
-* web           网站文件  
+![UMqhPH.png](https://s1.ax1x.com/2020/07/11/UMqhPH.png)
 
-# 更新说明：
+# 文件介绍：
 
-* 20200629, 优化IPv6,优化前端。注意docker默认是不支持IPv6的, 如使用docker需要手动开启ipv6        
-* 20200407, 网速计算不严谨，fixed    
-* 20190129, 降低CPU占用            
-* 20181221, 增加实时到三网的延迟       
-* 20181126, add tupd(tcp, udp, process ,thread) count for view ddcc attack    
-* 20180829, 网络情况：主机到三网(CU,CT,CM)每小时丢包率的检测
-* 20180726, 一切皆容器额,查看自动部署或autodeploy/readme
-* 20180312, 加入失联(被照顾)检测【正常：MH361, 屏蔽：MH370】，校准虚拟化流量统计异常　　　　　　
-* 20170807, 更新平均1，5，15负载, 增加服务器总流量监控                           
 
-# 自动部署：
+* server.php              服务端文件
+* client-linux.py        客户端文件
+* web                         网站文件  
 
-【服务端】：
+
+
+
+# 版本说明
+
+fork 中文版，根据自己的需求，梳理了下服务端的逻辑，发现 C++ 不会写。遂改成了 PHP 版本，不过兼顾客户端部署方便，还是原来的 python.
+
+将协议有 socket 更改为 websocket，可以将服务端隐藏在 CDN ( Cloudflare ) 后方，即使客户端被爆破也不会泄露服务端的 IP，毕竟服务端都是很脆弱的机器🙄.
+
+
+
+## 服务端区别
+
+- 协议更改为 websocket
+- 动态读取 `config.json` 文件进行验证客户端权限，这样不用像以往修改完配置再重启服务端才生效。
+- 一个URL同时生成服务端配置和客户端配置，不用登录服务端服务器也能新增节点。
+- 新增世界地图显示服务器大致位置
+- 移除 ipv6 判断，统一 ipv4，ipv6 的服务器可以通过 CDN 中转连接。
+
+
+
+## 客户端区别
+
+- 协议更改为 websocket
+- 新增一堆bug
+
+
+
+## 配置文件说明
+
+配置文件中以 `username` 作为唯一值认证，所以你需要保证你的用户名是唯一的。
+
+使用一键客户端指令运行时，服务端也会根据客户端 IP 校验配置是否唯一。
+
+
+
+# 安装
+
+这个监控脚本分为服务端和客户端，服务端就是用来统计及展示各个客户端信息的，一般只能有一个。而客户端是你要被监控的服务器，可以有多个，每一台就是一个客户端。
+
+
+
+## 服务端
+
+服务端采用 PHP 语言，所以还需要 swoole 扩展的环境，如果没有你可以下载我的绿色包，解压就能用。
+
+[PHP + SWOOLE 绿色解压版 (待更新)](#)
+
+运行：
+
 ```bash
-wget https://raw.githubusercontent.com/cppla/ServerStatus/master/autodeploy/config.json
-docker run -d --restart=always --name=serverstatus -v {$path}/config.json:/ServerStatus/server/config.json -p {$port}:80 -p {$port}:35601 cppla/serverstatus
-
-eg:
-docker run -d --restart=always --name=serverstatus -v ~/config.json:/ServerStatus/server/config.json -p 80:80 -p 35601:35601 cppla/serverstatus
+nohup php server.php
 ```
 
-【客户端】：
+后台运行：
+
 ```bash
-wget --no-check-certificate -qO client-linux.py 'https://raw.githubusercontent.com/cppla/ServerStatus/master/clients/client-linux.py' && nohup python client-linux.py SERVER={$SERVER} USER={$USER} PASSWORD={$PASSWORD} >/dev/null 2>&1 &
-
-eg:
-wget --no-check-certificate -qO client-linux.py 'https://raw.githubusercontent.com/cppla/ServerStatus/master/clients/client-linux.py' && nohup python client-linux.py SERVER=45.79.67.132 USER=s04  >/dev/null 2>&1 &
+nohup php server.php > /dev/null 2>&1 &
 ```
 
-# 手动安装教程：     
-   
-【克隆代码】:
-```
-git clone https://github.com/cppla/ServerStatus.git
-```
+默认服务端会监听一个 35601 端口进行处理请求，建议你通过 nginx 反向代理到服务端。
 
-【服务端配置】（服务端程序在ServerStatus/web下）:  
-          
-一、生成服务端程序              
-```
-cd ServerStatus/server
-make
-./sergate
-```
-如果没错误提示，OK，ctrl+c关闭；如果有错误提示，检查35601端口是否被占用    
+### Nginx
 
-二、修改配置文件         
-修改config.json文件，注意username, password的值需要和客户端对应一致                 
-```
-{"servers":
-	[
-		{
-			"username": "s01",
-			"name": "Mainserver 1",
-			"type": "Dedicated Server",
-			"host": "GenericServerHost123",
-			"location": "Austria",
-			"password": "some-hard-to-guess-copy-paste-password"
-		},
-	]
-}       
+如果你通过nginx反向代理，这是给予的配置选段参考。
+
+这里配置适用于百度云 CDN，当然 CloudFlare 也应该是可以的，主要将真实IP设置到 `X-Real-IP` 字段即可。
+
+```bash
+location / {
+        proxy_redirect off;
+        proxy_pass http://127.0.0.1:35602/;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "upgrade";
+        proxy_set_header Host $http_host;
+
+        proxy_set_header X-Real-IP $http_x_forwarded_for;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+}
 ```
 
-三、拷贝ServerStatus/status到你的网站目录        
-例如：
-```
-sudo cp -r ServerStatus/web/* /home/wwwroot/default
-```
 
-四、运行服务端：             
-web-dir参数为上一步设置的网站根目录，务必修改成自己网站的路径   
-```
-./sergate --config=config.json --web-dir=/home/wwwroot/default   
-```
 
-【客户端配置】（客户端程序在ServerStatus/clients下）：          
-客户端有两个版本，client-linux为普通linux，client-psutil为跨平台版，普通版不成功，换成跨平台版即可。        
+### Token
 
-一、client-linux版配置：       
-1、vim client-linux.py, 修改SERVER地址，username帐号， password密码        
-2、python client-linux.py 运行即可。      
+用于接口交互的 `token`，在服务端 `server.php` 文件所处的目录下，存储在 `.token` 里面。
 
-二、client-psutil版配置:                
-1、安装psutil跨平台依赖库      
-2、vim client-psutil.py, 修改SERVER地址，username帐号， password密码       
-3、python client-psutil.py 运行即可。           
-```
-### for Centos：
-sudo yum -y install epel-release
-sudo yum -y install python-pip
-sudo yum clean all
-sudo yum -y install gcc
-sudo yum -y install python-devel
-sudo pip install psutil
-### for Ubuntu/Debian:
-sudo root
-apt-get -y install python-setuptools python-dev build-essential
-apt-get -y install python-pip
-pip install psutil
-### for Windows:
-打开网址：https://pypi.python.org/pypi?:action=display&name=psutil#downloads
-下载psutil for windows程序包
-安装即可
+```bash
+$ cat .token
+2e311fc799c47bdd1578a41111397b2a
 ```
 
-打开云探针页面，就可以正常的监控。接下来把服务器和客户端脚本自行加入开机启动，或者进程守护，或以后台方式运行即可！例如： nohup python client-linux.py &      
 
-# 为什么会有ServerStatus中文版：
 
-* 有些功能确实没用
-* 原版本部署，英文说明复杂
-* 不符合中文版的习惯
-* 没有一次又一次的轮子，哪来如此优秀的云探针
+## 客户端
 
-# 相关开源项目，感谢： 
+### 依赖
 
-* ServerStatus：https://github.com/BotoX/ServerStatus
-* mojeda: https://github.com/mojeda 
-* mojeda's ServerStatus: https://github.com/mojeda/ServerStatus
-* BlueVM's project: http://www.lowendtalk.com/discussion/comment/169690#Comment_169690
+由于将原本的 `socket` 传输修改为 `websocket`，这里比以前还需要多安装一个 `websocket` 客户端。
+
+```
+pip install websocket_client
+```
+
+如果你是纯净版系统，可能还需要安装 pip (python 的包管理) 否则会提示 pip 命令不存在。
+
+#### CentOS/Redhat
+
+```bash
+yum install -y python-pip
+```
+
+#### Debian/Ubuntu
+
+```bash
+apt install -y python-pip
+```
+
+
+
+### 运行
+
+你可以通过编辑 `client-linux.py` 文件，并修改其中的`SERVER(接口地址)`、`USER(用户名)`、`PASSWORD(验证密码)`来保证客户端能和服务端正常连接。
+
+前台调试运行：
+
+```
+python client-linux.py
+```
+
+后台运行：
+
+```
+ nohup python client-linux.py >/dev/null 2>&1 &
+```
+
+为了快速部署，我们在此次改版中增加了一键部署客户端，无需再登录服务端修改配置文件，也无需再重启服务。
+
+记得将其中的`{1.1.1.1}`修改为你自己的域名, 将`{token}`修改为自己的 token，为保证你的管理端不被滥用，请不要随意泄露 token.
+
+```bash
+wget 'https://{1.1.1.1}/api/client-linux.py?token={token}'
+```
+
+上面命令比较精简，如果你想自己指定服务器的一些信息给到服务端，你可以这样运行。
+
+```bash
+wget 'http://{1.1.1.1}/api/client-linux.py?token={token}&type=kvm&name=HKVPS&location=HongKong' -O 'lient-linux.py'
+```
+
+完整示例：
+
+```bash
+wget 'http://192.168.75.132:35601/api/client-linux.py?token=db17150af7885e987d8bcdb791d7a824&type=kvm&name=HKVPS&location=HongKong' -O 'client-linux.py'
+```
+
+这样你就可以得到一个自动填上配置信息的客户端文件了，而且服务端也已经保存了对应信息，接下来只需要直接运行客户端脚本即可。
+
+```
+python client-linux.py
+```
+
+如果没有报错，你就可以按照前面的办法，将脚本放到后台进程中运行。
+
+
+
+### 清理历史
+
+清除命令历史，避免被人从历史中发现 `token` 的踪迹。
+
+```
+history -c
+```
+
+
+
+# 最后
+
+🙄 最后祝各位买机愉快~~
+
+🐛BUG反馈：https://t.me/EllerCN

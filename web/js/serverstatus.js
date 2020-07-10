@@ -77,11 +77,26 @@ function uptime() {
 		if(result.reload)
 			setTimeout(function() { location.reload(true) }, 1000);
 
+		let mapsData = {citys:[]};
 		for (var i = 0, rlen=result.servers.length; i < rlen; i++) {
 			var TableRow = $("#servers tr#r" + i);
 			var ExpandRow = $("#servers #rt" + i);
 			var hack; // fuck CSS for making me do this
 			if(i%2) hack="odd"; else hack="even";
+
+			if(result.servers[i].lat !== null && result.servers[i].lon !== null){
+				mapsData.citys.push({
+					name:result.servers[i].name,
+					value:[result.servers[i].lon, result.servers[i].lat, 20],
+					symbolSize:20,
+					itemStyle: {
+						normal: {
+							"color": result.servers[i].ip_status?"#59b459":"#F58158"
+						}
+					}
+				})
+			}
+
 			if (!TableRow.length) {
 				$("#servers").append(
 					"<tr id=\"r" + i + "\" data-toggle=\"collapse\" data-target=\"#rt" + i + "\" class=\"accordion-toggle " + hack + "\">" +
@@ -160,6 +175,8 @@ function uptime() {
 
 			// Location
 			TableRow.children["location"].innerHTML = result.servers[i].location;
+			result.servers[i].online4 = true;
+			result.servers[i].online6 = true;
 			if (!result.servers[i].online4 && !result.servers[i].online6) {
 				if (server_status[i]) {
 					TableRow.children["uptime"].innerHTML = "–";
@@ -185,6 +202,7 @@ function uptime() {
 					server_status[i] = false;
 				}
 			} else {
+				
 				if (!server_status[i]) {
 					TableRow.setAttribute("data-target", "#rt" + i);
 					server_status[i] = true;
@@ -192,6 +210,7 @@ function uptime() {
 
 				// Uptime
 				TableRow.children["uptime"].innerHTML = result.servers[i].uptime;
+				
 
 				// Load: default load_1, you can change show: load_1, load_5, load_15
 				if(result.servers[i].load == -1) {
@@ -281,7 +300,8 @@ function uptime() {
                 // delay time
 
 				// tcp, udp, process, thread count
-				ExpandRow[0].children["expand_tupd"].innerHTML = "TCP/UDP/进/线: " + result.servers[i].tcp_count + " / " + result.servers[i].udp_count + " / " + result.servers[i].process_count+ " / " + result.servers[i].thread_count;
+				console.log(result.servers[i].udp);
+				ExpandRow[0].children["expand_tupd"].innerHTML = "TCP/UDP/进/线: " + result.servers[i].tcp + " / " + result.servers[i].udp + " / " + result.servers[i].process+ " / " + result.servers[i].thread;
 				ExpandRow[0].children["expand_ping"].innerHTML = "联通/电信/移动: " + result.servers[i].time_10010 + "ms / " + result.servers[i].time_189 + "ms / " + result.servers[i].time_10086 + "ms"
 
                 // ping
@@ -302,6 +322,8 @@ function uptime() {
 				}
 			}
 		};
+
+		showMaps(mapsData);
 
 		d = new Date(result.updated*1000);
 		error = 0;
@@ -409,6 +431,82 @@ function readCookie(name) {
 			return c.substring(nameEQ.length,c.length);
 	}
 	return null;
+}
+
+function showMaps(data)
+{
+	// 基于准备好的dom，初始化echarts实例
+	var allData = data;
+
+	let option = {
+		backgroundColor: '#404a59',
+		title: {
+			text: '全球主机在线分布图',
+			left: 'center',
+			textStyle: {
+				color: '#fff'
+			}
+		},
+		legend: {
+			show: false,
+			orient: 'vertical',
+			top: 'bottom',
+			left: 'right',
+			data: ['地点', '线路'],
+			textStyle: {
+				color: '#fff'
+			}
+		},
+		geo: {
+			map: 'world',
+			label: {
+				emphasis: {
+					show: false
+				}
+			},
+			roam: true,
+			itemStyle: {
+				normal: {
+					areaColor: '#323c48',
+					borderColor: '#404a59'
+				},
+				emphasis: {
+					areaColor: '#2a333d'
+				}
+			}
+		},
+		series: [{
+			name: '地点',
+			type: 'effectScatter',
+			coordinateSystem: 'geo',
+			zlevel: 2,
+			rippleEffect: {
+				brushType: 'stroke'
+			},
+			label: {
+				emphasis: {
+					show: true,
+					position: 'right',
+					formatter: '{b}'
+				}
+			},
+			symbolSize: 2,
+			showEffectOn: 'render',
+			itemStyle: {
+				normal: {
+					color: '#46bee9'
+				}
+			},
+			data: allData.citys
+		}]
+	};
+
+
+
+	let myChart = echarts.init(document.getElementById('main'));
+
+	// 使用刚指定的配置项和数据显示图表。
+	myChart.setOption(option);
 }
 
 window.onload = function(e) {
