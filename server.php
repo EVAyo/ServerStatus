@@ -417,7 +417,7 @@ class  Server
                 }
                 $ip = $json['host'];
                 $ipInfo = $this->getIpInfo($ip);
-                if (!empty($ipInfo['lat']) || !empty($ipInfo['lon'])) {
+                if (!empty($ipInfo['lat']) && !empty($ipInfo['lon'])) {
                     $json['lat'] = $ipInfo['lat'];
                     $json['lon'] = $ipInfo['lon'];
                 }
@@ -468,15 +468,16 @@ class  Server
         $ipCachePath = $this->cache . DIRECTORY_SEPARATOR . $ip;
         if (is_file($ipCachePath)) {
             $ipInfo = file_get_contents($ipCachePath);
+            $ipInfo = json_decode($ipInfo, true);
         } else {
             $api = sprintf("http://ip-api.com/json/%s?lang=zh-CN", trim($ip));
             $opts = array(
                 'http' => array(
                     'method'  => "GET",
-                    'timeout' => 1,
+                    'timeout' => 3,
                 )
             );
-            $ipInfo = file_get_contents($api,false,stream_context_create($opts));
+            $ipInfo = file_get_contents($api, false, stream_context_create($opts));
             $ipInfo = json_decode($ipInfo, true);
             if ($ipInfo && isset($ipInfo['lon']) && isset($ipInfo['lat'])) {
                 file_put_contents($ipCachePath, json_encode($ipInfo));
