@@ -8,8 +8,9 @@ ServerStatus 中文修改版是一个酷炫高逼格的云探针、云监控、�
 
 ## 预览图
 
+![U1y9Tx.png](https://s1.ax1x.com/2020/07/12/U1y9Tx.png)
 
-![UMqhPH.png](https://s1.ax1x.com/2020/07/11/UMqhPH.png)
+
 
 # 文件介绍：
 
