@@ -64,7 +64,26 @@ fork 中文版，根据自己的需求，梳理了下服务端的逻辑，发现
 
 服务端采用 PHP 语言，所以还需要 swoole 扩展的环境，如果没有你可以下载我的绿色包，解压就能用。
 
-[PHP + SWOOLE 绿色解压版 (待更新)](#)
+[PHP + SWOOLE 绿色解压版](https://github.com/ellermister/ServerStatus/releases/download/php/php7.4.tar.gz)
+
+参考下面指令，只要将压缩包解压并设置软链接到系统环境变量所在目录即可。
+
+```
+wget https://github.com/ellermister/ServerStatus/releases/download/php/php7.4.tar.gz
+tar -xzf php7.4.tar.gz
+mkdir /usr/local/php
+mv php7.4 /usr/local/php
+ln /usr/local/php/php7.4/bin/php /usr/bin/php
+```
+
+（可能部分系统还有问题，建议手动安装或通过 docker 安装 swoole)
+
+下载源码并解压：
+
+```bash
+wget https://github.com/ellermister/ServerStatus/archive/master.zip
+unzip master.zip
+```
 
 运行：
 

@@ -27,6 +27,12 @@ class  Server
     protected $cache;//存放IP解析经纬度的结果
     protected $web;// web目录
 
+    protected $filterIP = [
+        '0.0.0.0/8', '10.0.0.0/8', '100.64.0.0/10', '127.0.0.0/8', '169.254.0.0/16', '172.16.0.0/12', '192.0.0.0/24',
+        '192.0.2.0/24', '192.88.99.0/24', '192.168.0.0/16', '198.18.0.0/15', '198.51.100.0/24', '203.0.113.0/24',
+        '224.0.0.0/4', '240.0.0.0/4', '255.255.255.255/32'
+    ];
+
     public function __construct()
     {
         $this->tmp = __DIR__ . DIRECTORY_SEPARATOR . 'tmp';
@@ -176,10 +182,10 @@ class  Server
             $html = "No Access";
             if ($request->server['request_uri'] == '/api/client-linux.py') {
                 if (trim($request->get['token']) === trim(TOKEN)) {
-                    $api = str_replace('{host}',$request->header['host'], API_URL); ;
+                    $api = str_replace('{host}', $request->header['host'], API_URL);;
 
                     $clientIp = $request->server['remote_addr'];
-                    $clientIp = isset($request->header['x-real-ip'])?$request->header['x-real-ip']:$clientIp;
+                    $clientIp = isset($request->header['x-real-ip']) ? $request->header['x-real-ip'] : $clientIp;
                     if ($server = $this->findServer('host', $clientIp)) {
                         $username = $server['username'];
                         $password = $server['password'];
@@ -188,14 +194,14 @@ class  Server
                         $password = md5(uniqid(microtime(true), true));
                     }
 
-                    try{
+                    try {
                         $this->saveServer(array_merge([
                             'host'     => $clientIp,
                             'username' => $username,
                             'password' => $password
-                        ],$this->array_only($request->get, ['host','username','password','type','name','location'])));
-                    }catch (Exception $exception){
-                        return $response->end("#-*- coding: UTF-8 -*-\n".'print ("'.$exception->getMessage().'")');
+                        ], $this->array_only($request->get, ['host', 'username', 'password', 'type', 'name', 'location'])));
+                    } catch (Exception $exception) {
+                        return $response->end("#-*- coding: UTF-8 -*-\n" . 'print ("' . $exception->getMessage() . '")');
                     }
 
                     $text = file_get_contents('./client-linux.py');
@@ -254,9 +260,9 @@ class  Server
      */
     protected function array_only(array $arr, array $only)
     {
-        $ret =[];
-        foreach ($only as $name){
-            if(isset($arr[$name])){
+        $ret = [];
+        foreach ($only as $name) {
+            if (isset($arr[$name])) {
                 $ret[$name] = $arr[$name];
             }
         }
@@ -338,7 +344,7 @@ class  Server
         $isMatch = false;
         $usernameDuplicate = false;
         foreach ($users['servers'] as &$server) {
-            if(isset($server['username']) && $server['username'] == $config['username']){
+            if (isset($server['username']) && $server['username'] == $config['username']) {
                 $usernameDuplicate = true;
             }
             if (isset($server['host']) && $server['host'] == $config['host']) {
@@ -348,7 +354,7 @@ class  Server
             }
         }
         // 如果是新增用户而且用户名相同则拒绝
-        if(!$isMatch && $usernameDuplicate) throw new Exception("用户名已经存在, 请修改!");
+        if (!$isMatch && $usernameDuplicate) throw new Exception("用户名已经存在, 请修改!");
         if ($isMatch === false) {
             $users['servers'][] = $config;
         }
@@ -396,25 +402,30 @@ class  Server
                     }
                 }
                 $json['lat'] = $json['lon'] = null;
+                $json['connected_xy'] = [];
+                if (isset($json['connected_ip']) && is_array($json['connected_ip'])) {
+                    foreach ($json['connected_ip'] as $_ip) {
+                        $ipInfo = $this->getIpInfo($_ip);
 
-                $ip = $json['host'];
-                $ipCachePath = $this->cache . DIRECTORY_SEPARATOR . $ip;
-                if (is_file($ipCachePath)) {
-                    $ipInfo = file_get_contents($ipCachePath);
-                } else {
-                    $api = sprintf("http://ip-api.com/json/%s?lang=zh-CN", trim($ip));
-                    $ipInfo = file_get_contents($api);
-                }
-                if ($ipInfo = json_decode($ipInfo, true)) {
-                    if (!empty($ipInfo['lat']) || !empty($ipInfo['lat'])) {
-                        $json['lat'] = $ipInfo['lat'];
-                        $json['lon'] = $ipInfo['lon'];
-                        file_put_contents($ipCachePath, json_encode($ipInfo));
+                        if (is_array($ipInfo) && isset($ipInfo['lat'])) {
+                            $json['connected_xy'][] = [
+                                'lat' => $ipInfo['lat'],
+                                'lon' => $ipInfo['lon'],
+                            ];
+                        }
                     }
                 }
+                $ip = $json['host'];
+                $ipInfo = $this->getIpInfo($ip);
+                if (!empty($ipInfo['lat']) || !empty($ipInfo['lon'])) {
+                    $json['lat'] = $ipInfo['lat'];
+                    $json['lon'] = $ipInfo['lon'];
+                }
                 $this->format($json);
+                unset($json['connected_ip']);
                 unset($json['password']);
                 unset($json['host']);
+                unset($json['username']);
                 $output['servers'][] = $json;
             }
         }
@@ -422,6 +433,58 @@ class  Server
 
         //返回任务执行的结果
     }
+
+    /**
+     * 判断是否是过滤IP
+     *
+     * @param $ip
+     * @return bool|int
+     */
+    protected function isFilterIP($ip)
+    {
+        $ipInt = ip2long($ip);
+        foreach ($this->filterIP as $ipSegment) {
+            list($ipBegin, $type) = explode('/', $ipSegment);
+            $ipBegin = ip2long($ipBegin);
+            $mask = 0xFFFFFFFF << (32 - intval($type));
+            if (intval($ipInt & $mask) == intval($ipBegin & $mask)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * 获取IP信息
+     *
+     * @param $ip
+     * @return bool|false|mixed|string
+     */
+    protected function getIpInfo($ip)
+    {
+        if ($this->isFilterIP($ip)) {
+            return false;
+        }
+        $ipCachePath = $this->cache . DIRECTORY_SEPARATOR . $ip;
+        if (is_file($ipCachePath)) {
+            $ipInfo = file_get_contents($ipCachePath);
+        } else {
+            $api = sprintf("http://ip-api.com/json/%s?lang=zh-CN", trim($ip));
+            $opts = array(
+                'http' => array(
+                    'method'  => "GET",
+                    'timeout' => 1,
+                )
+            );
+            $ipInfo = file_get_contents($api,false,stream_context_create($opts));
+            $ipInfo = json_decode($ipInfo, true);
+            if ($ipInfo && isset($ipInfo['lon']) && isset($ipInfo['lat'])) {
+                file_put_contents($ipCachePath, json_encode($ipInfo));
+            }
+        }
+        return $ipInfo ? $ipInfo : false;
+    }
+
 }
 
 (new Server())->start(SERVER_IP, SERVER_PORT);

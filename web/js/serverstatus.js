@@ -77,7 +77,8 @@ function uptime() {
 		if(result.reload)
 			setTimeout(function() { location.reload(true) }, 1000);
 
-		let mapsData = {citys:[]};
+		let mapsData = {citys:[],moveLines:[]};
+		let moveLines = [];
 		for (var i = 0, rlen=result.servers.length; i < rlen; i++) {
 			var TableRow = $("#servers tr#r" + i);
 			var ExpandRow = $("#servers #rt" + i);
@@ -87,15 +88,43 @@ function uptime() {
 			if(result.servers[i].lat !== null && result.servers[i].lon !== null){
 				mapsData.citys.push({
 					name:result.servers[i].name,
-					value:[result.servers[i].lon, result.servers[i].lat, 20],
-					symbolSize:20,
+					value:[result.servers[i].lon, result.servers[i].lat, 10],
+					symbolSize:10,
 					itemStyle: {
 						normal: {
 							"color": result.servers[i].ip_status?"#59b459":"#F58158"
+							// "color": result.servers[i].ip_status?"#58B3CC":"#F58158"
 						}
 					}
 				})
+
+
+				if(result.servers[i].connected_xy !== null && result.servers[i].connected_xy !== null){
+					for(let _index in result.servers[i].connected_xy){
+						console.log( result.servers[i].connected_xy);
+						moveLines.push({
+							"fromName": "",
+							"toName": result.servers[i].name,
+							"coords": [
+								[result.servers[i].lon, result.servers[i].lat],
+								[result.servers[i].connected_xy[_index].lon, result.servers[i].connected_xy[_index].lat]
+
+							]
+						});
+						mapsData.citys.push({
+							name:"",
+							value:[result.servers[i].connected_xy[_index].lon, result.servers[i].connected_xy[_index].lat,2],
+							symbolSize:2,
+							itemStyle: {
+								normal: {
+									"color": "#F58158"
+								}
+							}
+						})
+					}
+				}
 			}
+
 
 			if (!TableRow.length) {
 				$("#servers").append(
@@ -322,7 +351,7 @@ function uptime() {
 				}
 			}
 		};
-
+		mapsData.moveLines = moveLines;
 		showMaps(mapsData);
 
 		d = new Date(result.updated*1000);
@@ -498,6 +527,33 @@ function showMaps(data)
 				}
 			},
 			data: allData.citys
+		}, {
+			name: '线路',
+			type: 'lines',
+			coordinateSystem: 'geo',
+			zlevel: 2,
+			large: true,
+			effect: {
+				show: true,
+				constantSpeed: 30,
+				symbol: 'pin',
+				symbolSize: 3,
+				trailLength: 0,
+			},
+			lineStyle: {
+				normal: {
+					color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [{
+						offset: 0, color: '#F58158'
+					}, {
+						offset: 1, color: '#59b459'
+						// offset: 1, color: '#58B3CC'
+					}], false),
+					width: 1,
+					opacity: 0.2,
+					curveness: 0.1
+				}
+			},
+			data: allData.moveLines
 		}]
 	};
 

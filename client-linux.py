@@ -253,6 +253,13 @@ def byte_str(object):
     else:
         print(type(object))
 
+def get_connect_ip():
+    str = subprocess.check_output(
+        """netstat -tupna|grep -v ":\*"|awk 'NR <= 2 {next} {print $5}'|sed 's/:.*//g'|sort|uniq """, shell=True)
+    str = str.split("\n")[0:-1]
+    return str
+
+
 if __name__ == '__main__':
     for argc in sys.argv:
         if 'SERVER' in argc:
@@ -345,6 +352,7 @@ if __name__ == '__main__':
                 array['time_189'] = pingTime.get('189')
                 array['time_10086'] = pingTime.get('10086')
                 array['tcp'], array['udp'], array['process'], array['thread'] = tupd()
+                array['connected_ip'] = get_connect_ip()
                 print json.dumps(array)
                 print array
                 ws.send(byte_str("update " + json.dumps(array) + "\n"))
