@@ -2,6 +2,9 @@
 var error = 0;
 var d = 0;
 var server_status = new Array();
+global_xy = [];
+global_moveline = [];
+global_citys = [];
 
 function timeSince(date) {
 	if(date == 0)
@@ -78,7 +81,6 @@ function uptime() {
 			setTimeout(function() { location.reload(true) }, 1000);
 
 		let mapsData = {citys:[],moveLines:[]};
-		let moveLines = [];
 		for (var i = 0, rlen=result.servers.length; i < rlen; i++) {
 			var TableRow = $("#servers tr#r" + i);
 			var ExpandRow = $("#servers #rt" + i);
@@ -101,26 +103,33 @@ function uptime() {
 
 				if(result.servers[i].connected_xy !== null && result.servers[i].connected_xy !== null){
 					for(let _index in result.servers[i].connected_xy){
-						console.log( result.servers[i].connected_xy);
-						moveLines.push({
-							"fromName": "",
-							"toName": result.servers[i].name,
-							"coords": [
-								[result.servers[i].lon, result.servers[i].lat],
-								[result.servers[i].connected_xy[_index].lon, result.servers[i].connected_xy[_index].lat]
 
-							]
-						});
-						mapsData.citys.push({
-							name:"",
-							value:[result.servers[i].connected_xy[_index].lon, result.servers[i].connected_xy[_index].lat,2],
-							symbolSize:2,
-							itemStyle: {
-								normal: {
-									"color": "#F58158"
+						if(!global_xy.hasOwnProperty(result.servers[i].name)){
+							global_xy[result.servers[i].name] = [];
+						}
+						if(global_xy[result.servers[i].name].indexOf(_index) === -1){
+							global_moveline.push({
+								"fromName": "",
+								"toName": result.servers[i].name,
+								"coords": [
+									[result.servers[i].lon, result.servers[i].lat],
+									[result.servers[i].connected_xy[_index].lon, result.servers[i].connected_xy[_index].lat]
+
+								]
+							});
+							global_citys.push({
+								name:"",
+								value:[result.servers[i].connected_xy[_index].lon, result.servers[i].connected_xy[_index].lat,2],
+								symbolSize:2,
+								itemStyle: {
+									normal: {
+										"color": "#F58158"
+									}
 								}
-							}
-						})
+							});
+							global_xy[result.servers[i].name].push(_index);
+						}
+
 					}
 				}
 			}
@@ -329,7 +338,6 @@ function uptime() {
                 // delay time
 
 				// tcp, udp, process, thread count
-				console.log(result.servers[i].udp);
 				ExpandRow[0].children["expand_tupd"].innerHTML = "TCP/UDP/进/线: " + result.servers[i].tcp + " / " + result.servers[i].udp + " / " + result.servers[i].process+ " / " + result.servers[i].thread;
 				ExpandRow[0].children["expand_ping"].innerHTML = "联通/电信/移动: " + result.servers[i].time_10010 + "ms / " + result.servers[i].time_189 + "ms / " + result.servers[i].time_10086 + "ms"
 
@@ -351,7 +359,8 @@ function uptime() {
 				}
 			}
 		};
-		mapsData.moveLines = moveLines;
+		mapsData.moveLines = global_moveline;
+		mapsData.citys = mapsData.citys.concat(global_citys)
 		showMaps(mapsData);
 
 		d = new Date(result.updated*1000);
@@ -556,6 +565,7 @@ function showMaps(data)
 			data: allData.moveLines
 		}]
 	};
+
 
 
 

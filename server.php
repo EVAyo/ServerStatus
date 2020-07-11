@@ -408,13 +408,15 @@ class  Server
                         $ipInfo = $this->getIpInfo($_ip);
 
                         if (is_array($ipInfo) && isset($ipInfo['lat'])) {
-                            $json['connected_xy'][] = [
+                            $xy = 'xy_'.$ipInfo['lat'].'_'.ipInfo['lon'];
+                            $json['connected_xy'][$xy] = [
                                 'lat' => $ipInfo['lat'],
                                 'lon' => $ipInfo['lon'],
                             ];
                         }
                     }
                 }
+                ksort($json['connected_xy']);
                 $ip = $json['host'];
                 $ipInfo = $this->getIpInfo($ip);
                 if (!empty($ipInfo['lat']) && !empty($ipInfo['lon'])) {
