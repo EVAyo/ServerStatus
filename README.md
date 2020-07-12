@@ -65,7 +65,7 @@ fork 中文版，根据自己的需求，梳理了下服务端的逻辑，发现
 
 服务端采用 PHP 语言，所以还需要 swoole 扩展的环境，如果没有你可以下载我的绿色包，解压就能用。
 
-[PHP + SWOOLE 绿色解压版](https://github.com/ellermister/ServerStatus/releases/download/php/php7.4.tar.gz)
+[PHP + SWOOLE 绿色解压版](https://github.com/ellermister/ServerStatus/releases/download/7.4/php7.4-static7.tar.gz)
 
 参考下面指令，只要将压缩包解压并设置软链接到系统环境变量所在目录即可。
 
