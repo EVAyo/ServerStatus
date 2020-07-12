@@ -69,15 +69,14 @@ fork 中文版，根据自己的需求，梳理了下服务端的逻辑，发现
 
 参考下面指令，只要将压缩包解压并设置软链接到系统环境变量所在目录即可。
 
-```
-wget https://github.com/ellermister/ServerStatus/releases/download/php/php7.4.tar.gz
-tar -xzf php7.4.tar.gz
-mkdir /usr/local/php
-mv php7.4 /usr/local/php
+```bash
+wget https://github.com/ellermister/ServerStatus/releases/download/7.4/php7.4-static7.tar.gz
+tar -xzf php7.4-static7.tar.gz
+mkdir /usr/local/php && mv php7.4 /usr/local/php
 ln /usr/local/php/php7.4/bin/php /usr/bin/php
 ```
 
-（可能部分系统还有问题，建议手动安装或通过 docker 安装 swoole)
+（可能部分系统还有问题，如果不成功建议通过 docker 安装 swoole)
 
 下载源码并解压：
 
