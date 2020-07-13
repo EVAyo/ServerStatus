@@ -408,7 +408,7 @@ class  Server
                         $ipInfo = $this->getIpInfo($_ip);
 
                         if (is_array($ipInfo) && isset($ipInfo['lat'])) {
-                            $xy = 'xy_'.$ipInfo['lat'].'_'.ipInfo['lon'];
+                            $xy = 'xy_'.$ipInfo['lat'].'_'.$ipInfo['lon'];
                             $json['connected_xy'][$xy] = [
                                 'lat' => $ipInfo['lat'],
                                 'lon' => $ipInfo['lon'],
